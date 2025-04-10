@@ -1,32 +1,35 @@
-name: Daily Job Fetcher
+name: Job Fetcher
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Every day at 6:00 UTC
+    - cron: '0 0 * * *'  # Runs at midnight every day (UTC)
   workflow_dispatch:     # Allows manual trigger
 
 jobs:
-  fetch_jobs:
+  backup-and-scrape:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
-      - name: Install dependencies
-        run: pip install requests
+    - name: Install dependencies
+      run: |
+        pip install requests  # Requests is the only external dependency
 
-      - name: Run fetcher
-        run: python fetch_jobs.py
+    - name: Run the job fetcher script
+      run: |
+        python job_fetcher.py
 
-      - name: Commit updated CSV
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add job_details.csv
-          git commit -m "Update job_details.csv [automated]" || echo "No changes to commit"
-          git push
+    - name: Commit and push changes
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add job_details.csv job_details_backups/*
+        git commit -m "Update job details CSV and backup [automated]" || echo "No changes to commit"
+        git push

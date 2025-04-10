@@ -5,11 +5,13 @@ import csv
 import time
 from datetime import datetime
 import os
+import shutil
 
 API_KEY = 'jobboerse-jobsuche'
 BASE_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4'
 HEADERS = {'X-API-Key': API_KEY}
 CSV_FILE = 'job_details.csv'
+BACKUP_FOLDER = 'job_details_backups'
 
 ALL_FIELDS = [
     'aktuelleVeroeffentlichungsdatum', 'angebotsart', 'arbeitgeber', 'branchengruppe', 'branche', 'arbeitgeberHashId',
@@ -71,12 +73,23 @@ def load_existing_refnrs():
         reader = csv.DictReader(f)
         return set(row['refnr'] for row in reader)
 
+def backup_csv():
+    if not os.path.exists(BACKUP_FOLDER):
+        os.makedirs(BACKUP_FOLDER)
+
+    if os.path.exists(CSV_FILE):
+        # Get current date for backup file name
+        current_date = datetime.now().strftime('%m-%d-%y')
+        backup_file = os.path.join(BACKUP_FOLDER, f"job_details_{current_date}.csv")
+        shutil.copy(CSV_FILE, backup_file)
+        print(f"[✓] Backup saved as {backup_file}")
+
 def append_to_csv(new_jobs):
     if not new_jobs:
         print("No new jobs found.")
         return
 
-    with open(CSV_FILE, mode='a', encoding='utf-8', newline='') as f:
+    with open(CSV_FILE, mode='w', encoding='utf-8', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=ALL_FIELDS)
         if f.tell() == 0:
             writer.writeheader()
@@ -101,6 +114,8 @@ def main():
             new_jobs.append(job)
         time.sleep(1)
 
+    # Backup and replace the CSV
+    backup_csv()
     append_to_csv(new_jobs)
 
 if __name__ == '__main__':
