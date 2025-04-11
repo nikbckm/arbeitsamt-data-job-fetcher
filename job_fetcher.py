@@ -64,7 +64,7 @@ def fetch_job_ids():
             break
 
         page += 1
-        time.sleep(1)  # Be polite to the API
+        time.sleep(0.2)  # Be polite to the API
 
     return job_ids
 
@@ -130,7 +130,7 @@ def main():
             for field in ALL_FIELDS:
                 job.setdefault(field, '')  # Fill missing fields with empty strings
             new_jobs.append(job)
-        time.sleep(0.3) # be nice to the API :)
+        time.sleep(0.2)
 
     if new_jobs:
         print(f"Total new jobs found: {len(new_jobs)}")
