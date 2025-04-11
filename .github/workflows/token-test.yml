@@ -1,25 +1,30 @@
-name: Token Push Test
+name: Token Test
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  push-test:
+  token-test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Make dummy file
-        run: echo "test at $(date)" > token_test_output.txt
+    - name: Set up Git
+      uses: actions/setup-git@v2
+      with:
+        author_name: github-actions
+        author_email: github-actions@github.com
 
-      - name: Git config
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+    - name: Create test file
+      run: |
+        echo "This is a token test file" > token_test_output.txt
 
-      - name: Commit and push test file
-        run: |
-          git add token_test_output.txt
-          git commit -m "Token test [automated]" || echo "No changes"
-          git push https://x-access-token:${{ secrets.JOB_FETCHER_TOKEN }}@github.com/${{ github.repository }}.git
+    - name: Commit and push changes
+      run: |
+        git add token_test_output.txt
+        git commit -m "Token test [automated]"
+        git push https://github.com/nikbckm/arbeitsamt-data-job-fetcher.git HEAD:main
+      env:
+        GITHUB_TOKEN: ${{ secrets.JOB_FETCHER_TOKEN }}
