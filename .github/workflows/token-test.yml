@@ -9,10 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3  # Latest stable version
-
-    - name: Set up Git
-      uses: git-config-action/setup-git@v3  # Most up-to-date setup-git action
+      uses: actions/checkout@v3
 
     - name: Create test file
       run: |
