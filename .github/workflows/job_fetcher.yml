@@ -2,34 +2,49 @@ name: Job Fetcher
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs at midnight every day (UTC)
-  workflow_dispatch:     # Allows manual trigger
+    - cron: '0 0 * * *'  # This runs the job fetcher every day at midnight UTC
+  workflow_dispatch:  # Allows manual triggering from the GitHub UI
 
 jobs:
-  backup-and-scrape:
+  job_fetcher:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      # Set up Python environment
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+        
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
 
-    - name: Install dependencies
-      run: |
-        pip install requests  # Requests is the only external dependency
+      # Set up GitHub token for authentication (use secret)
+      - name: Set up GitHub Token
+        env:
+          GITHUB_TOKEN: ${{ secrets.job-fetcher-token }}
+        run: |
+          echo "Using GitHub token for authentication"
 
-    - name: Run the job fetcher script
-      run: |
-        python job_fetcher.py
+      # Run the job fetcher script
+      - name: Run job fetcher script
+        env:
+          GITHUB_TOKEN: ${{ secrets.job-fetcher-token }}
+        run: |
+          python job_fetcher.py  # Run the script that fetches and updates the job details CSV
 
-    - name: Commit and push changes
-      run: |
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
-        git add job_details.csv job_details_backups/*
-        git commit -m "Update job details CSV and backup [automated]" || echo "No changes to commit"
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/nikbckm/arbeitsamt-data-job-fetcher.git
+      # Commit and push job details to repository
+      - name: Commit and push job details to repository
+        run: |
+          git config --global user.name "nikbckm"
+          git config --global user.email "nikbckm@users.noreply.github.com"
+          git add job_details.csv
+          git commit -m "Updated job details"
+          git push origin main
