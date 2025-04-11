@@ -27,4 +27,4 @@ jobs:
         git commit -m "Token test [automated]"
         git push https://github.com/nikbckm/arbeitsamt-data-job-fetcher.git HEAD:main
       env:
-        GITHUB_TOKEN: ${{ secrets.JOB_FETCHER_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.SECRET }}
