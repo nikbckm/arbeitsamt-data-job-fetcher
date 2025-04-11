@@ -32,4 +32,4 @@ jobs:
         git config user.email "github-actions@github.com"
         git add job_details.csv job_details_backups/*
         git commit -m "Update job details CSV and backup [automated]" || echo "No changes to commit"
-        git push
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/nikbckm/arbeitsamt-data-job-fetcher.git
