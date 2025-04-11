@@ -11,6 +11,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Set up Git user
+      run: |
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "GitHub Actions"
+
     - name: Create test file
       run: |
         echo "This is a token test file" > token_test_output.txt
