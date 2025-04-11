@@ -111,6 +111,9 @@ def append_to_csv(new_jobs):
             writer.writerow(filtered_job)
     print(f"[✓] Added {len(new_jobs)} new jobs to {CSV_FILE}")
 
+    # Print how many jobs were added
+    print(f"[✓] Added {len(new_jobs)} new jobs to {CSV_FILE}")
+
 # Main execution flow
 def main():
     existing_refnrs = load_existing_refnrs()
@@ -131,6 +134,7 @@ def main():
         time.sleep(0.3) # be nice to the API :)
 
     if new_jobs:
+        print(f"Total new jobs found: {len(new_jobs)}")
         backup_csv()
         append_to_csv(new_jobs)
 
