@@ -1,0 +1,25 @@
+name: Token Push Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  push-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Make dummy file
+        run: echo "test at $(date)" > token_test_output.txt
+
+      - name: Git config
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Commit and push test file
+        run: |
+          git add token_test_output.txt
+          git commit -m "Token test [automated]" || echo "No changes"
+          git push https://x-access-token:${{ secrets.JOB_FETCHER_TOKEN }}@github.com/${{ github.repository }}.git
