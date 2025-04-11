@@ -43,7 +43,8 @@ def fetch_job_ids():
             'was': 'data',           # Job search keyword
             'angebotsart': '1',      # Job offer type
             'page': page,
-            'size': '50'             # Jobs per page
+            'size': '50',             # Jobs per page
+            'sort': 'veroeffdatum'
         }
         resp = requests.get(f"{BASE_URL}/jobs", headers=HEADERS, params=params)
         if resp.status_code != 200:
@@ -127,7 +128,7 @@ def main():
             for field in ALL_FIELDS:
                 job.setdefault(field, '')  # Fill missing fields with empty strings
             new_jobs.append(job)
-        time.sleep(1)
+        time.sleep(0.3) # be nice to the API :)
 
     if new_jobs:
         backup_csv()
