@@ -14,10 +14,9 @@ Dieses Projekt automatisiert das Abrufen von Jobangeboten von der Jobbörse der 
 - Jede neue Job-ID wird der `job_details.csv` hinzugefügt und mit dem aktuellen Datum versehen (`scraping_date`).
 - Alle Änderungen an der CSV-Datei werden automatisch an das GitHub-Repository zurückgepusht.
 
-## CSV Format
-Die `job_details.csv` Datei enthält die folgenden Spalten:
-- **scraping_date**: Das Datum, an dem der Job abgerufen wurde
-- **Weitere Jobinformationen**: Alle weiteren Jobdaten, die von der API bereitgestellt werden.
+## bundesAPI / Jobsuche API
+https://github.com/bundesAPI/jobsuche-api
+https://jobsuche.api.bund.dev/
 
 ## Lizenz
 Dieses Projekt ist unter der MIT-Lizenz lizenziert.
