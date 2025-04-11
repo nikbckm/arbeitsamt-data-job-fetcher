@@ -15,8 +15,8 @@ Dieses Projekt automatisiert das Abrufen von Jobangeboten von der Jobbörse der 
 - Alle Änderungen an der CSV-Datei werden automatisch an das GitHub-Repository zurückgepusht.
 
 ## bundesAPI / Jobsuche API
-https://github.com/bundesAPI/jobsuche-api
-https://jobsuche.api.bund.dev/
+- https://github.com/bundesAPI/jobsuche-api
+- https://jobsuche.api.bund.dev/
 
 ## Lizenz
 Dieses Projekt ist unter der MIT-Lizenz lizenziert.
