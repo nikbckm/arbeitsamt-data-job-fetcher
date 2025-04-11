@@ -9,13 +9,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3  # Latest stable version
 
     - name: Set up Git
-      uses: actions/setup-git@v2
-      with:
-        author_name: github-actions
-        author_email: github-actions@github.com
+      uses: git-config-action/setup-git@v3  # Most up-to-date setup-git action
 
     - name: Create test file
       run: |
