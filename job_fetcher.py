@@ -109,7 +109,6 @@ def append_to_csv(new_jobs):
         for job in new_jobs:
             filtered_job = {k: job.get(k, '') for k in ALL_FIELDS}
             writer.writerow(filtered_job)
-    print(f"[✓] Added {len(new_jobs)} new jobs to {CSV_FILE}")
 
     # Print how many jobs were added
     print(f"[✓] Added {len(new_jobs)} new jobs to {CSV_FILE}")
