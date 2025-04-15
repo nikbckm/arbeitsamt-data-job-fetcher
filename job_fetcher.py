@@ -17,16 +17,48 @@ HEADERS = {'X-API-Key': API_KEY}
 CSV_FILE = 'job_details.csv'
 BACKUP_FOLDER = 'job_details_backups'
 
-# Define all job fields to extract and write into the CSV
-ALL_FIELDS = [
-    'aktuelleVeroeffentlichungsdatum', 'angebotsart', 'arbeitgeber', 'branchengruppe', 'branche', 'arbeitgeberHashId',
-    'arbeitsorte', 'arbeitszeitmodelle', 'befristung', 'uebernahme', 'betriebsgroesse', 'eintrittsdatum', 
-    'ersteVeroeffentlichungsdatum', 'allianzpartner', 'allianzpartnerUrl', 'titel', 'hashId', 'beruf', 
-    'modifikationsTimestamp', 'stellenbeschreibung', 'refnr', 'fuerFluechtlingeGeeignet', 'nurFuerSchwerbehinderte', 
-    'anzahlOffeneStellen', 'arbeitgeberAdresse', 'fertigkeiten', 'mobilitaet', 'fuehrungskompetenzen', 'verguetung', 
-    'arbeitgeberdarstellungUrl', 'arbeitgeberdarstellung', 'hauptDkz', 'istBetreut', 'istGoogleJobsRelevant', 
-    'anzeigeAnonym', 'scraping_date'
-]
+# Mapping from API response fields to CSV fields
+FIELD_MAPPING = {
+    'aktuelleVeroeffentlichungsdatum': 'veroeffentlichungszeitraum',
+    'angebotsart': 'stellenangebotsart',
+    'arbeitgeber': 'firma',
+    'branchengruppe': 'hauptberuf',
+    'branche': 'branche',
+    'arbeitgeberHashId': 'arbeitgeberHashId',
+    'arbeitsorte': 'stellenlokationen',
+    'arbeitszeitmodelle': 'arbeitszeitHeimarbeitTelearbeit',
+    'befristung': 'vertragsdauer',
+    'uebernahme': 'uebernahme',
+    'betriebsgroesse': 'betriebsgroesse',
+    'eintrittsdatum': 'eintrittszeitraum',
+    'ersteVeroeffentlichungsdatum': 'ersteVeroeffentlichungsdatum',
+    'allianzpartner': 'allianzpartnerName',
+    'allianzpartnerUrl': 'allianzpartnerUrl',
+    'titel': 'stellenangebotsTitel',
+    'hashId': 'hashId',
+    'beruf': 'beruf',
+    'modifikationsTimestamp': 'aenderungsdatum',
+    'stellenbeschreibung': 'stellenangebotsBeschreibung',
+    'refnr': 'referenznummer',
+    'fuerFluechtlingeGeeignet': 'istGeringfuegigeBeschaeftigung',
+    'nurFuerSchwerbehinderte': 'istBehinderungGefordert',
+    'anzahlOffeneStellen': 'anzahlOffeneStellen',
+    'arbeitgeberAdresse': 'arbeitsorte',
+    'fertigkeiten': 'fertigkeiten',
+    'mobilitaet': 'mobilitaet',
+    'fuehrungskompetenzen': 'fuehrungskompetenzen',
+    'verguetung': 'verguetung',
+    'arbeitgeberdarstellungUrl': 'arbeitgeberdarstellungUrl',
+    'arbeitgeberdarstellung': 'arbeitgeberdarstellung',
+    'hauptDkz': 'hauptDkz',
+    'istBetreut': 'istBetreut',
+    'istGoogleJobsRelevant': 'istGoogleJobsRelevant',
+    'anzeigeAnonym': 'anzeigeAnonym',
+    'scraping_date': 'scraping_date'
+}
+
+# Output fields for the CSV (based on the mapping)
+ALL_FIELDS = list(FIELD_MAPPING.values())
 
 # Encode the job reference number for use in the job details endpoint
 def encode_refnr(refnr):
@@ -43,7 +75,7 @@ def fetch_job_ids():
             'was': 'data',           # Job search keyword
             'angebotsart': '1',      # Job offer type
             'page': page,
-            'size': '50',             # Jobs per page
+            'size': '50',            # Jobs per page
             'sort': 'veroeffdatum'
         }
         resp = requests.get(f"{BASE_URL}/jobs", headers=HEADERS, params=params)
@@ -83,7 +115,7 @@ def load_existing_refnrs():
         return set()
     with open(CSV_FILE, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
-        return set(row['refnr'] for row in reader)
+        return set(row['referenznummer'] for row in reader)
 
 # Create a timestamped backup of the existing CSV
 def backup_csv():
@@ -107,17 +139,21 @@ def append_to_csv(new_jobs):
         if f.tell() == 0:  # File is empty, write headers
             writer.writeheader()
         for job in new_jobs:
-            filtered_job = {k: job.get(k, '') for k in ALL_FIELDS}
-            writer.writerow(filtered_job)
+            # Map the API response fields to the CSV fields
+            mapped_job = {FIELD_MAPPING.get(k, k): v for k, v in job.items()}
+            mapped_job['scraping_date'] = datetime.utcnow().isoformat()  # Add timestamp
+            writer.writerow(mapped_job)
 
     # Print how many jobs were added
     print(f"[✓] Added {len(new_jobs)} new jobs to {CSV_FILE}")
 
-# Main execution flow
+# Main execution flow incl restriction just to jobs from 15.04.25 on
 def main():
     existing_refnrs = load_existing_refnrs()
     all_refnrs = fetch_job_ids()
     new_jobs = []
+
+    cutoff_date = datetime.strptime('2025-04-15', '%Y-%m-%d')
 
     for i, refnr in enumerate(all_refnrs):
         if refnr in existing_refnrs:
@@ -125,10 +161,20 @@ def main():
             break
         print(f"Fetching job {i+1}: {refnr}")
         job = fetch_job_details(refnr)
+
         if job:
-            job['scraping_date'] = datetime.utcnow().isoformat()  # Add timestamp
+            try:
+                job_date = datetime.fromisoformat(job.get('aktuelleVeroeffentlichungsdatum', ''))
+                if job_date < cutoff_date:
+                    print(f"[x] Job {refnr} skipped (posted before cutoff date).")
+                    continue
+            except Exception:
+                print(f"[!] Could not parse date for job {refnr}, skipping.")
+                continue
+
+            job['scraping_date'] = datetime.utcnow().isoformat()
             for field in ALL_FIELDS:
-                job.setdefault(field, '')  # Fill missing fields with empty strings
+                job.setdefault(field, '')
             new_jobs.append(job)
         time.sleep(0.2)
 
@@ -136,6 +182,7 @@ def main():
         print(f"Total new jobs found: {len(new_jobs)}")
         backup_csv()
         append_to_csv(new_jobs)
+
 
 # Entry point
 if __name__ == '__main__':
