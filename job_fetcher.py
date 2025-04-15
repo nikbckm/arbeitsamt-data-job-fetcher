@@ -121,6 +121,8 @@ def backup_csv():
         backup_file = os.path.join(BACKUP_FOLDER, f"job_details_{current_date}.csv")
         shutil.copy(CSV_FILE, backup_file)
         print(f"[✓] Backup saved as {backup_file}")
+        return backup_file
+    return None
 
 def append_to_csv(new_jobs):
     if not new_jobs:
@@ -163,10 +165,15 @@ def main():
             new_jobs.append(job)
         time.sleep(0.2)
 
+    backup_path = None
     if new_jobs:
         print(f"Total new jobs found: {len(new_jobs)}")
-        backup_csv()
+        backup_path = backup_csv()
         append_to_csv(new_jobs)
+
+        if backup_path:
+            print(f"::set-output name=backup_path::{backup_path}")
+
 
 if __name__ == '__main__':
     main()

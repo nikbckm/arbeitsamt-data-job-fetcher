@@ -37,3 +37,10 @@ jobs:
           git add job_details.csv
           git commit -m "Updated job details" || echo "No changes to commit"
           git push https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/nikbckm/arbeitsamt-data-job-fetcher.git HEAD:main
+
+      - name: Upload backup as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: job_backup
+          path: job_details_backups/
