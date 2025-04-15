@@ -1,12 +1,12 @@
 # Import necessary libraries
-import requests  # For making HTTP requests to the API
-import json      # For parsing JSON responses
-import base64    # For encoding job reference numbers for API requests
-import csv       # For reading and writing CSV files
-import time      # For adding delay between requests
-from datetime import datetime  # For handling timestamps
-import os        # For file and directory operations
-import shutil    # For backing up existing files
+import requests
+import json
+import base64
+import csv
+import time
+from datetime import datetime
+import os
+import shutil
 
 # API configuration
 API_KEY = 'jobboerse-jobsuche'
@@ -60,11 +60,9 @@ FIELD_MAPPING = {
 # Output fields for the CSV (based on the mapping)
 ALL_FIELDS = list(FIELD_MAPPING.values())
 
-# Encode the job reference number for use in the job details endpoint
 def encode_refnr(refnr):
     return base64.b64encode(refnr.encode('utf-8')).decode('utf-8')
 
-# Fetch all job reference numbers via paginated API requests
 def fetch_job_ids():
     page = 1
     job_ids = []
@@ -72,11 +70,12 @@ def fetch_job_ids():
 
     while True:
         params = {
-            'was': 'data',           # Job search keyword
-            'angebotsart': '1',      # Job offer type
+            'was': 'data',
+            'angebotsart': '1',
             'page': page,
-            'size': '50',            # Jobs per page
-            'sort': 'veroeffdatum'
+            'size': '50',
+            'sort': 'veroeffdatum',
+            'veroeffentlichtseit': '1'
         }
         resp = requests.get(f"{BASE_URL}/jobs", headers=HEADERS, params=params)
         if resp.status_code != 200:
@@ -87,20 +86,17 @@ def fetch_job_ids():
         if not jobs:
             break
 
-        # Collect job reference numbers
         job_ids.extend([j['refnr'] for j in jobs if 'refnr' in j])
         total_jobs += len(jobs)
 
-        # Stop if we've reached the max result count from the API
         if total_jobs >= int(resp.json().get('maxErgebnisse', 0)):
             break
 
         page += 1
-        time.sleep(0.2)  # Be polite to the API
+        time.sleep(0.2)
 
     return job_ids
 
-# Fetch detailed job info using encoded reference number
 def fetch_job_details(refnr):
     encoded_refnr = encode_refnr(refnr)
     url = f"{BASE_URL}/jobdetails/{encoded_refnr}"
@@ -109,7 +105,6 @@ def fetch_job_details(refnr):
         return resp.json()
     return None
 
-# Load job reference numbers already present in the existing CSV
 def load_existing_refnrs():
     if not os.path.exists(CSV_FILE):
         return set()
@@ -117,7 +112,6 @@ def load_existing_refnrs():
         reader = csv.DictReader(f)
         return set(row['refnr'] for row in reader)
 
-# Create a timestamped backup of the existing CSV
 def backup_csv():
     if not os.path.exists(BACKUP_FOLDER):
         os.makedirs(BACKUP_FOLDER)
@@ -128,7 +122,6 @@ def backup_csv():
         shutil.copy(CSV_FILE, backup_file)
         print(f"[✓] Backup saved as {backup_file}")
 
-# Append newly fetched job details to the CSV
 def append_to_csv(new_jobs):
     if not new_jobs:
         print("No new jobs found.")
@@ -136,24 +129,19 @@ def append_to_csv(new_jobs):
 
     with open(CSV_FILE, mode='a', encoding='utf-8', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=ALL_FIELDS)
-        if f.tell() == 0:  # File is empty, write headers
+        if f.tell() == 0:
             writer.writeheader()
         for job in new_jobs:
-            # Map the API response fields to the CSV fields
             mapped_job = {FIELD_MAPPING.get(k, k): v for k, v in job.items()}
-            mapped_job['scraping_date'] = datetime.utcnow().isoformat()  # Add timestamp
+            mapped_job['scraping_date'] = datetime.utcnow().isoformat()
             writer.writerow(mapped_job)
 
-    # Print how many jobs were added
     print(f"[✓] Added {len(new_jobs)} new jobs to {CSV_FILE}")
 
-# Main execution flow incl restriction just to jobs from 15.04.25 on
 def main():
     existing_refnrs = load_existing_refnrs()
     all_refnrs = fetch_job_ids()
     new_jobs = []
-
-    cutoff_date = datetime.strptime('2025-04-15', '%Y-%m-%d')
 
     for i, refnr in enumerate(all_refnrs):
         if refnr in existing_refnrs:
@@ -163,15 +151,6 @@ def main():
         job = fetch_job_details(refnr)
 
         if job:
-            try:
-                job_date = datetime.fromisoformat(job.get('aktuelleVeroeffentlichungsdatum', ''))
-                if job_date < cutoff_date:
-                    print(f"[x] Job {refnr} skipped (posted before cutoff date).")
-                    continue
-            except Exception:
-                print(f"[!] Could not parse date for job {refnr}, skipping.")
-                continue
-
             job['scraping_date'] = datetime.utcnow().isoformat()
             for field in ALL_FIELDS:
                 job.setdefault(field, '')
@@ -183,7 +162,5 @@ def main():
         backup_csv()
         append_to_csv(new_jobs)
 
-
-# Entry point
 if __name__ == '__main__':
     main()
