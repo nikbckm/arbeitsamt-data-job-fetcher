@@ -39,7 +39,7 @@ FIELD_MAPPING = {
     'beruf': 'beruf',
     'modifikationsTimestamp': 'aenderungsdatum',
     'stellenbeschreibung': 'stellenangebotsBeschreibung',
-    'refnr': 'referenznummer',
+    'refnr': 'refnr',
     'fuerFluechtlingeGeeignet': 'istGeringfuegigeBeschaeftigung',
     'nurFuerSchwerbehinderte': 'istBehinderungGefordert',
     'anzahlOffeneStellen': 'anzahlOffeneStellen',
@@ -115,7 +115,7 @@ def load_existing_refnrs():
         return set()
     with open(CSV_FILE, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
-        return set(row['referenznummer'] for row in reader)
+        return set(row['refnr'] for row in reader)
 
 # Create a timestamped backup of the existing CSV
 def backup_csv():
