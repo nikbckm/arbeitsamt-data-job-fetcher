@@ -39,7 +39,7 @@ FIELD_MAPPING = {
     'beruf': 'beruf',
     'modifikationsTimestamp': 'aenderungsdatum',
     'stellenbeschreibung': 'stellenangebotsBeschreibung',
-    'refnr': 'refnr',
+    'refnr': 'referenznummer',
     'fuerFluechtlingeGeeignet': 'istGeringfuegigeBeschaeftigung',
     'nurFuerSchwerbehinderte': 'istBehinderungGefordert',
     'anzahlOffeneStellen': 'anzahlOffeneStellen',
@@ -132,11 +132,17 @@ def append_to_csv(new_jobs):
         if f.tell() == 0:
             writer.writeheader()
         for job in new_jobs:
-            mapped_job = {FIELD_MAPPING.get(k, k): v for k, v in job.items()}
-            mapped_job['scraping_date'] = datetime.utcnow().isoformat()
-            writer.writerow(mapped_job)
+            # Filter out any keys that are not in ALL_FIELDS
+            filtered_job = {k: v for k, v in job.items() if k in ALL_FIELDS}
+            
+            # Add the 'scraping_date' to the filtered job
+            filtered_job['scraping_date'] = datetime.utcnow().isoformat()
+            
+            # Write the filtered job to the CSV
+            writer.writerow(filtered_job)
 
     print(f"[✓] Added {len(new_jobs)} new jobs to {CSV_FILE}")
+
 
 def main():
     existing_refnrs = load_existing_refnrs()
