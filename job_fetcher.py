@@ -117,7 +117,7 @@ def backup_csv():
         os.makedirs(BACKUP_FOLDER)
 
     if os.path.exists(CSV_FILE):
-        current_date = datetime.now().strftime('%m-%d-%y')
+        current_date = datetime.now().strftime('%d-%m-%y')
         backup_file = os.path.join(BACKUP_FOLDER, f"job_details_{current_date}.csv")
         shutil.copy(CSV_FILE, backup_file)
         print(f"[✓] Backup saved as {backup_file}")
