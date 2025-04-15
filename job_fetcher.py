@@ -39,7 +39,7 @@ FIELD_MAPPING = {
     'beruf': 'beruf',
     'modifikationsTimestamp': 'aenderungsdatum',
     'stellenbeschreibung': 'stellenangebotsBeschreibung',
-    'refnr': 'referenznummer',
+    'referenznummer': 'referenznummer',
     'fuerFluechtlingeGeeignet': 'istGeringfuegigeBeschaeftigung',
     'nurFuerSchwerbehinderte': 'istBehinderungGefordert',
     'anzahlOffeneStellen': 'anzahlOffeneStellen',
@@ -60,8 +60,8 @@ FIELD_MAPPING = {
 # Output fields for the CSV (based on the mapping)
 ALL_FIELDS = list(FIELD_MAPPING.values())
 
-def encode_refnr(refnr):
-    return base64.b64encode(refnr.encode('utf-8')).decode('utf-8')
+def encode_referenznummer(referenznummer):
+    return base64.b64encode(referenznummer.encode('utf-8')).decode('utf-8')
 
 def fetch_job_ids():
     page = 1
@@ -86,7 +86,7 @@ def fetch_job_ids():
         if not jobs:
             break
 
-        job_ids.extend([j['refnr'] for j in jobs if 'refnr' in j])
+        job_ids.extend([j['referenznummer'] for j in jobs if 'referenznummer' in j])
         total_jobs += len(jobs)
 
         if total_jobs >= int(resp.json().get('maxErgebnisse', 0)):
@@ -97,20 +97,20 @@ def fetch_job_ids():
 
     return job_ids
 
-def fetch_job_details(refnr):
-    encoded_refnr = encode_refnr(refnr)
-    url = f"{BASE_URL}/jobdetails/{encoded_refnr}"
+def fetch_job_details(referenznummer):
+    encoded_referenznummer = encode_referenznummer(referenznummer)
+    url = f"{BASE_URL}/jobdetails/{encoded_referenznummer}"
     resp = requests.get(url, headers=HEADERS)
     if resp.status_code == 200:
         return resp.json()
     return None
 
-def load_existing_refnrs():
+def load_existing_referenznummers():
     if not os.path.exists(CSV_FILE):
         return set()
     with open(CSV_FILE, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
-        return set(row['refnr'] for row in reader)
+        return set(row['referenznummer'] for row in reader)
 
 def backup_csv():
     if not os.path.exists(BACKUP_FOLDER):
@@ -145,16 +145,16 @@ def append_to_csv(new_jobs):
 
 
 def main():
-    existing_refnrs = load_existing_refnrs()
-    all_refnrs = fetch_job_ids()
+    existing_referenznummers = load_existing_referenznummers()
+    all_referenznummers = fetch_job_ids()
     new_jobs = []
 
-    for i, refnr in enumerate(all_refnrs):
-        if refnr in existing_refnrs:
-            print(f"[i] Found existing job {refnr}. Stopping further fetches.")
+    for i, referenznummer in enumerate(all_referenznummers):
+        if referenznummer in existing_referenznummers:
+            print(f"[i] Found existing job {referenznummer}. Stopping further fetches.")
             break
-        print(f"Fetching job {i+1}: {refnr}")
-        job = fetch_job_details(refnr)
+        print(f"Fetching job {i+1}: {referenznummer}")
+        job = fetch_job_details(referenznummer)
 
         if job:
             job['scraping_date'] = datetime.utcnow().isoformat()
