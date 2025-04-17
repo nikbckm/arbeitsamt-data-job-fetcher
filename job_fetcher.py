@@ -147,32 +147,57 @@ def append_to_csv(new_jobs):
 
 
 def main():
+    print("[→] Starting job scraping script...")
+
+    # Load referenznummern already in CSV
+    print("[•] Loading existing referenznummern from CSV...")
     existing_referenznummers = load_existing_referenznummers()
+
+    # Fetch all referenznummern from today's API results
+    print("[•] Fetching today's referenznummern from API...")
     all_referenznummers = fetch_job_ids()
+
     new_jobs = []
 
+    # Iterate through fetched jobs until a known referenznummer is hit
     for i, referenznummer in enumerate(all_referenznummers):
         if referenznummer in existing_referenznummers:
-            print(f"[i] Found existing job {referenznummer}. Stopping further fetches.")
+            print(f"[i] Found existing job {referenznummer}. No new jobs published since last run. Stopping further fetches.")
             break
-        print(f"Fetching job {i+1}: {referenznummer}")
+
+        print(f"[→] Fetching job {i+1}: {referenznummer}")
         job = fetch_job_details(referenznummer)
 
         if job:
+            # Ensure scraping timestamp is included
             job['scraping_date'] = datetime.utcnow().isoformat()
+
+            # Fill missing fields with empty strings
             for field in ALL_FIELDS:
                 job.setdefault(field, '')
-            new_jobs.append(job)
-        time.sleep(0.2)
 
+            new_jobs.append(job)
+
+        time.sleep(0.2)  # Small delay to respect API
+
+    # Backup old CSV if new jobs exist
     backup_path = None
     if new_jobs:
-        print(f"Total new jobs found: {len(new_jobs)}")
+        print(f"[✓] Total new jobs found: {len(new_jobs)}")
+
+        print("[•] Creating CSV backup before writing new data...")
         backup_path = backup_csv()
+
+        print("[•] Writing new jobs to CSV...")
         append_to_csv(new_jobs)
 
+        # Output backup path to GitHub Actions (for debugging or artifact usage)
         if backup_path:
             print(f"::set-output name=backup_path::{backup_path}")
+    else:
+        print("[i] No new jobs were added today. CSV remains unchanged.")
+
+    print("[✓] Job scraping run completed.")
 
 
 if __name__ == '__main__':
