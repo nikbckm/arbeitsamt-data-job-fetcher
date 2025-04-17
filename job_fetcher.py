@@ -39,7 +39,7 @@ FIELD_MAPPING = {
     'beruf': 'beruf',
     'modifikationsTimestamp': 'aenderungsdatum',
     'stellenbeschreibung': 'stellenangebotsBeschreibung',
-    'referenznummer': 'referenznummer',
+    'refnr': 'refnr',
     'fuerFluechtlingeGeeignet': 'istGeringfuegigeBeschaeftigung',
     'nurFuerSchwerbehinderte': 'istBehinderungGefordert',
     'anzahlOffeneStellen': 'anzahlOffeneStellen',
@@ -60,8 +60,8 @@ FIELD_MAPPING = {
 # Output fields for the CSV (based on the mapping)
 ALL_FIELDS = list(FIELD_MAPPING.values())
 
-def encode_referenznummer(referenznummer):
-    return base64.b64encode(referenznummer.encode('utf-8')).decode('utf-8')
+def encode_refnr(refnr):
+    return base64.b64encode(refnr.encode('utf-8')).decode('utf-8')
 
 def fetch_job_ids():
     page = 1
@@ -86,7 +86,7 @@ def fetch_job_ids():
         if not jobs:
             break
 
-        job_ids.extend([j['referenznummer'] for j in jobs if 'referenznummer' in j])
+        job_ids.extend([j['refnr'] for j in jobs if 'refnr' in j])
         total_jobs += len(jobs)
 
         if total_jobs >= int(resp.json().get('maxErgebnisse', 0)):
@@ -97,20 +97,20 @@ def fetch_job_ids():
 
     return job_ids
 
-def fetch_job_details(referenznummer):
-    encoded_referenznummer = encode_referenznummer(referenznummer)
-    url = f"{BASE_URL}/jobdetails/{encoded_referenznummer}"
+def fetch_job_details(refnr):
+    encoded_refnr = encode_refnr(refnr)
+    url = f"{BASE_URL}/jobdetails/{encoded_refnr}"
     resp = requests.get(url, headers=HEADERS)
     if resp.status_code == 200:
         return resp.json()
     return None
 
-def load_existing_referenznummers():
+def load_existing_refnrs():
     if not os.path.exists(CSV_FILE):
         return set()
     with open(CSV_FILE, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
-        return set(row['referenznummer'] for row in reader)
+        return set(row['refnr'] for row in reader)
 
 def backup_csv():
     if not os.path.exists(BACKUP_FOLDER):
@@ -149,24 +149,29 @@ def append_to_csv(new_jobs):
 def main():
     print("[→] Starting job scraping script...")
 
-    # Load referenznummern already in CSV
-    print("[•] Loading existing referenznummern from CSV...")
-    existing_referenznummers = load_existing_referenznummers()
+    # Load refnrn already in CSV
+    print("[•] Loading existing refnrn from CSV...")
+    existing_refnrs = load_existing_refnrs()
 
-    # Fetch all referenznummern from today's API results
-    print("[•] Fetching today's referenznummern from API...")
-    all_referenznummers = fetch_job_ids()
+    # Fetch all refnrn from today's API results
+    print("[•] Fetching today's refnrn from API...")
+    all_refnrs = fetch_job_ids()
 
     new_jobs = []
 
-    # Iterate through fetched jobs until a known referenznummer is hit
-    for i, referenznummer in enumerate(all_referenznummers):
-        if referenznummer in existing_referenznummers:
-            print(f"[i] Found existing job {referenznummer}. No new jobs published since last run. Stopping further fetches.")
+    # Iterate through fetched jobs until a known refnr is hit
+    for i, refnr in enumerate(all_refnrs):
+        print(f"Existing refnrn: {existing_refnrs}")
+        print(f"Current refnr: {refnr}")
+        
+        # Strip whitespace to ensure accurate comparison
+        refnr = refnr.strip()
+        if refnr in existing_refnrs:
+            print(f"[i] Found existing job {refnr}. No new jobs published since last run. Stopping further fetches.")
             break
 
-        print(f"[→] Fetching job {i+1}: {referenznummer}")
-        job = fetch_job_details(referenznummer)
+        print(f"[→] Fetching job {i+1}: {refnr}")
+        job = fetch_job_details(refnr)
 
         if job:
             # Ensure scraping timestamp is included
@@ -198,6 +203,7 @@ def main():
         print("[i] No new jobs were added today. CSV remains unchanged.")
 
     print("[✓] Job scraping run completed.")
+
 
 
 if __name__ == '__main__':
