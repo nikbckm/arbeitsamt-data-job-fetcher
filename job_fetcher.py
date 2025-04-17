@@ -14,8 +14,9 @@ BASE_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4'
 HEADERS = {'X-API-Key': API_KEY}
 
 # Output CSV and backup directory
-CSV_FILE = 'job_details.csv'
-BACKUP_FOLDER = 'job_details_backups'
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_FILE = os.path.join(SCRIPT_DIR, 'job_details.csv')
+BACKUP_FOLDER = os.path.join(SCRIPT_DIR, 'job_details_backups')
 
 # Mapping from API response fields to CSV fields
 FIELD_MAPPING = {
