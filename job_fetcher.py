@@ -159,25 +159,26 @@ def main():
 
     new_jobs = []
 
-    # Iterate through fetched jobs until a known referenznummer is hit
+    # Iterate through fetched jobs
     for i, referenznummer in enumerate(all_referenznummers):
-        if referenznummer in existing_referenznummers:
-            print(f"[i] Found existing job {referenznummer}. No new jobs published since last run. Stopping further fetches.")
-            break
-
         print(f"[→] Fetching job {i+1}: {referenznummer}")
         job = fetch_job_details(referenznummer)
 
         if job:
-            # Ensure scraping timestamp is included
-            job['scraping_date'] = datetime.utcnow().isoformat()
+            veroeffdatum_raw = job.get("aktuelleVeroeffentlichungsdatum", "")
+            veroeffdatum = veroeffdatum_raw.split("T")[0]
 
-            # Fill missing fields with empty strings
-            for field in ALL_FIELDS:
-                job.setdefault(field, '')
+            if veroeffdatum == datetime.utcnow().date().isoformat():
+                # Ensure scraping timestamp is included
+                job['scraping_date'] = datetime.utcnow().isoformat()
 
-            new_jobs.append(job)
+                # Fill missing fields with empty strings
+                for field in ALL_FIELDS:
+                    job.setdefault(field, '')
 
+                new_jobs.append(job)
+            else:
+                print(f"[i] Skipping {referenznummer} — published on {veroeffdatum}")
         time.sleep(0.2)  # Small delay to respect API
 
     # Backup old CSV if new jobs exist
@@ -191,13 +192,13 @@ def main():
         print("[•] Writing new jobs to CSV...")
         append_to_csv(new_jobs)
 
-        # Output backup path to GitHub Actions (for debugging or artifact usage)
         if backup_path:
             print(f"::set-output name=backup_path::{backup_path}")
     else:
         print("[i] No new jobs were added today. CSV remains unchanged.")
 
     print("[✓] Job scraping run completed.")
+
 
 
 if __name__ == '__main__':
