@@ -76,7 +76,7 @@ def fetch_job_ids():
             'page': page,
             'size': '50',
             'sort': 'veroeffdatum',
-            'veroeffentlichtseit': '0'
+            'veroeffentlichtseit': '1'
         }
         resp = requests.get(f"{BASE_URL}/jobs", headers=HEADERS, params=params)
         if resp.status_code != 200:
