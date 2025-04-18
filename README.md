@@ -8,9 +8,10 @@ Dieses Projekt automatisiert das Abrufen von Jobangeboten von der Jobbörse der 
 - **CSV-Datenbank**: Alle abgerufenen Jobangebote werden in einer CSV-Datei (`job_details.csv`) gespeichert.
 - **Tägliche Aktualisierung**: Jeden Tag wird ein neuer Fetch gestartet, der neue Jobs hinzufügt, sofern diese nicht bereits vorhanden sind.
 - **GitHub Actions**: Automatisierte Ausführung über GitHub Actions, die einmal pro Tag ausgeführt wird.
+- **Backup**: Backup vom Vortag wird im Subfolder erstellt
 
 ## GitHub Actions
-- GitHub Actions führt das Skript täglich um 00:00 UTC automatisch aus.
+- GitHub Actions führt das Skript täglich um 02:00 UTC automatisch aus.
 - Jede neue Job-ID wird der `job_details.csv` hinzugefügt und mit dem aktuellen Datum versehen (`scraping_date`).
 - Alle Änderungen an der CSV-Datei werden automatisch an das GitHub-Repository zurückgepusht.
 
