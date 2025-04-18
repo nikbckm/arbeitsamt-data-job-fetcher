@@ -76,7 +76,7 @@ def fetch_job_ids():
             'page': page,
             'size': '50',
             'sort': 'veroeffdatum',
-            'veroeffentlichtseit': '1'
+            'veroeffentlichtseit': '0'
         }
         resp = requests.get(f"{BASE_URL}/jobs", headers=HEADERS, params=params)
         if resp.status_code != 200:
@@ -103,7 +103,9 @@ def fetch_job_details(refnr):
     url = f"{BASE_URL}/jobdetails/{encoded_refnr}"
     resp = requests.get(url, headers=HEADERS)
     if resp.status_code == 200:
-        return resp.json()
+        data = resp.json()
+        print(json.dumps(data, indent=2, ensure_ascii=False))  # <-- Now this will run
+        return data
     return None
 
 def load_existing_refnrs():
@@ -111,7 +113,7 @@ def load_existing_refnrs():
         return set()
     with open(CSV_FILE, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
-        return set(row['refnr'] for row in reader)
+        return set(row['refnr'].strip() for row in reader)
 
 def backup_csv():
     if not os.path.exists(BACKUP_FOLDER):
