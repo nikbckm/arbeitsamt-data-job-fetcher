@@ -103,9 +103,10 @@ def fetch_job_details(refnr):
     url = f"{BASE_URL}/jobdetails/{encoded_refnr}"
     resp = requests.get(url, headers=HEADERS)
     if resp.status_code == 200:
-        data = resp.json()
-        print(json.dumps(data, indent=2, ensure_ascii=False))  # <-- Now this will run
-        return data
+        job = resp.json()
+        print(json.dumps(job, indent=2, ensure_ascii=False))  # optional for debugging
+        job['refnr'] = job.get('refnr') or job.get('referenznummer', '')
+        return job
     return None
 
 def load_existing_refnrs():
@@ -198,6 +199,8 @@ def main():
 
         print("[•] Writing new jobs to CSV...")
         append_to_csv(new_jobs)
+
+        print(f"DEBUG: {len(new_jobs)} jobs collected")
 
         # Output backup path to GitHub Actions (for debugging or artifact usage)
         if backup_path:
