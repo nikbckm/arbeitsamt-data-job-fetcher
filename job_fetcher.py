@@ -105,7 +105,7 @@ def fetch_job_ids():
     total_jobs = 0
     while True:
         params = {
-            'was': 'daten',  # Keyword (search term)
+            'was': 'data',  # Keyword (search term)
             'angebotsart': '1',  
             'page': page,
             'size': '50',  # Max per page
