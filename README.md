@@ -4,7 +4,11 @@
 
 
 ## Beschreibung
-Dieses Projekt automatisiert das Abrufen von Jobangeboten von der Jobbörse der Bundesagentur für Arbeit (Arbeitsagentur) mit dem Keyword "Data" und speichert die Daten in einer CSV-Datei. Der Fetcher läuft einmal täglich und fügt neue Jobs hinzu, die noch nicht in der Datei vorhanden sind. Es wird auch das Datum der Datensammlung gespeichert, um eine Nachverfolgbarkeit zu gewährleisten.
+Dieses Projekt automatisiert das Abrufen von Jobangeboten von der Jobbörse der Bundesagentur für Arbeit (Arbeitsagentur) mit dem Keyword "Data" und speichert die Daten in einer CSV-Datei. Der Fetcher läuft einmal täglich und fügt neue Jobs hinzu, die noch nicht in der Datei vorhanden sind. Es wird auch das Datum der Datensammlung gespeichert, um eine Nachverfolgbarkeit zu gewährleisten. Kann für Jobmarktanalysen wie die Folgende verwendet werden.
+
+## Analysebeispiel
+![Analysis img](analysis.png)
+.pbix file befindet sich im repo - leider erlaubt Microsoft kein public sharing für private accounts.
 
 ## Funktionsweise
 - **API Anbindung**: Es wird eine Verbindung zur Jobbörse API hergestellt, um Jobangebote zu laden.
