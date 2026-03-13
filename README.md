@@ -1,7 +1,6 @@
 # Arbeitssamt Data Job Fetcher
 
-![Header img](header.png)
-
+Note: Deaktiviert wegen BA Terms of Use
 
 ## Beschreibung
 Dieses Projekt automatisiert das Abrufen von Jobangeboten von der Jobbörse der Bundesagentur für Arbeit (Arbeitsagentur) mit dem Keyword "Data" und speichert die Daten in einer CSV-Datei. Der Fetcher läuft einmal täglich und fügt neue Jobs hinzu, die noch nicht in der Datei vorhanden sind. Es wird auch das Datum der Datensammlung gespeichert, um eine Nachverfolgbarkeit zu gewährleisten. Kann für Jobmarktanalysen wie die Folgende verwendet werden.
